@@ -12,12 +12,20 @@
 
 import random
 import math
+from _collections import defaultdict
 
 # We've set up a suggested code structure, but feel free to change it. Just
 # make sure your code still works with the label.py and pos_scorer.py code
 # that we've supplied.
 #
 class Solver:
+    
+    def __init__(self):
+        self.dict_count_first_word={}
+        self.dict_count_each_word={}
+        self.dict_count_each_part_of_speech={}
+        self.dict_count_part_of_speech_CP={}
+        self.dict_count_word_part_of_speech={}
 
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling
@@ -27,12 +35,47 @@ class Solver:
     # Do the training!
     #
     def train(self, data):
+        self.dict_count_first_word,self.dict_count_each_word,self.dict_count_each_part_of_speech,self.dict_count_part_of_speech_CP,self.dict_count_word_part_of_speech=self.learning_dictionary(data)
+        #print dict_count_first_word
+        #print dict_count_each_word
+        #print dict_count_each_part_of_speech
+        #print dict_count_part_of_speech_CP
+        #print dict_count_word_part_of_speech
         pass
 
     # Functions for each algorithm.
     #
     def naive(self, sentence):
-        return [ [ [ "noun" ] * len(sentence)], [] ]
+        #dict_count_word_part_of_speech
+        #print sentence
+        tempkey=""
+        word_used_as_part_of_speech="dd"
+        CP_count=0
+        output=[]
+        part_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        #print self.dict_count_word_part_of_speech
+        for i in range(0, len(sentence)):
+            if(self.dict_count_each_word.has_key(sentence[i])):
+                for j in range(0, len(part_of_speech)):
+                    tempkey=sentence[i]
+                    tempkey+="-"
+                    tempkey+=part_of_speech[j].lower()
+                    if(self.dict_count_word_part_of_speech[tempkey]> CP_count):
+                        word_used_as_part_of_speech=part_of_speech[j].lower()
+                        CP_count=self.dict_count_word_part_of_speech[tempkey]
+                       
+            else:
+                word_used_as_part_of_speech="noun"
+                
+            #output=sentence[i]
+            #output+="."
+            output.append(word_used_as_part_of_speech)
+            
+        return [ [ output], [] ]
+        #print output
+        #Ground truth': [[('adv', '.', 'noun', 'verb', 'num', 'noun', 'prt', '.', 'verb', 'noun', 'noun', 'adp', 'det', 'noun', 'adp', 'det', 'noun', '.')], []]}
+                
+        #return [ [ [ "noun" ] * len(sentence)], [] ]
 
     def mcmc(self, sentence, sample_count):
         return [ [ [ "noun" ] * len(sentence) ] * sample_count, [] ]
@@ -45,6 +88,32 @@ class Solver:
 
     def viterbi(self, sentence):
         return [ [ [ "noun" ] * len(sentence)], [] ]
+    
+    def learning_dictionary(self,data):
+        dict_count_first_word=defaultdict(int)
+        dict_count_each_word=defaultdict(int)
+        dict_count_each_part_of_speech=defaultdict(int)
+        dict_count_part_of_speech_CP=defaultdict(int)
+        dict_count_word_part_of_speech=defaultdict(int)
+        for i in range(0,len(data)):
+            dict_count_first_word[data[i][0][0]]=dict_count_first_word[data[i][0][0]]+1
+            for j in range(0,len(data[i][0])):
+                dict_count_each_word[data[i][0][j]]=dict_count_each_word[data[i][0][j]]+1  
+                dict_count_each_part_of_speech[data[i][1][j]]=dict_count_each_part_of_speech[data[i][1][j]]+1
+                if j<len(data[i][0])-1:
+                    CP_part_of_speech=data[i][1][j]
+                    CP_part_of_speech+="-"
+                    CP_part_of_speech+=data[i][1][j+1]
+                    dict_count_part_of_speech_CP[CP_part_of_speech]=dict_count_part_of_speech_CP[CP_part_of_speech]+1 
+                    
+                    
+                    Word_part_of_speech=data[i][0][j]
+                    Word_part_of_speech+="-"
+                    Word_part_of_speech+=data[i][1][j]
+                    dict_count_word_part_of_speech[Word_part_of_speech] = dict_count_word_part_of_speech[Word_part_of_speech]+1    
+        return dict_count_first_word,dict_count_each_word,dict_count_each_part_of_speech,dict_count_part_of_speech_CP,dict_count_word_part_of_speech
+        
+    
 
 
     # This solve() method is called by label.py, so you should keep the interface the
