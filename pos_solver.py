@@ -21,11 +21,11 @@ from _collections import defaultdict
 class Solver:
     
     def __init__(self):
-        self.dict_count_first_word={}
-        self.dict_count_each_word={}
-        self.dict_count_each_part_of_speech={}
-        self.dict_count_part_of_speech_CP={}
-        self.dict_count_word_part_of_speech={}
+        self.dict_count_first_word={} #p(s1)
+        self.dict_count_each_word={} #Number of times a word occurs in the model data
+        self.dict_count_each_part_of_speech={} #e.g.,(dict["noun"]=3)
+        self.dict_count_part_of_speech_CP={} #e.g.,(dict["noun-verb"]=5)
+        self.dict_count_word_part_of_speech={}#e.g., (dict[hari-noun]=6)
 
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling
@@ -38,9 +38,9 @@ class Solver:
         self.dict_count_first_word,self.dict_count_each_word,self.dict_count_each_part_of_speech,self.dict_count_part_of_speech_CP,self.dict_count_word_part_of_speech=self.learning_dictionary(data)
         #print dict_count_first_word
         #print dict_count_each_word
-        #print dict_count_each_part_of_speech
+        #print self.dict_count_each_part_of_speech
         #print dict_count_part_of_speech_CP
-        #print dict_count_word_part_of_speech
+        #print self.dict_count_word_part_of_speech
         pass
 
     # Functions for each algorithm.
@@ -50,12 +50,12 @@ class Solver:
         #print sentence
         tempkey=""
         word_used_as_part_of_speech="dd"
-        CP_count=0
         output=[]
         part_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
         #print self.dict_count_word_part_of_speech
         for i in range(0, len(sentence)):
             if(self.dict_count_each_word.has_key(sentence[i])):
+                CP_count=0
                 for j in range(0, len(part_of_speech)):
                     tempkey=sentence[i]
                     tempkey+="-"
@@ -65,16 +65,18 @@ class Solver:
                         CP_count=self.dict_count_word_part_of_speech[tempkey]
                        
             else:
-                word_used_as_part_of_speech="noun"
+                CP_count=0
+                for j in range(0, len(part_of_speech)):
+                    if(self.dict_count_each_part_of_speech[part_of_speech[j].lower()]>CP_count):
+                        CP_count=self.dict_count_each_part_of_speech[part_of_speech[j].lower()]
+                        word_used_as_part_of_speech=part_of_speech[j].lower()
                 
             #output=sentence[i]
             #output+="."
             output.append(word_used_as_part_of_speech)
             
         return [ [ output], [] ]
-        #print output
-        #Ground truth': [[('adv', '.', 'noun', 'verb', 'num', 'noun', 'prt', '.', 'verb', 'noun', 'noun', 'adp', 'det', 'noun', 'adp', 'det', 'noun', '.')], []]}
-                
+        #print output     
         #return [ [ [ "noun" ] * len(sentence)], [] ]
 
     def mcmc(self, sentence, sample_count):
