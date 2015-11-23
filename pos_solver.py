@@ -80,7 +80,7 @@ class Solver:
         return [ [ output], [] ]
         #print output     
         #return [ [ [ "noun" ] * len(sentence)], [] ]
-
+	
     def mcmc(self, sentence, sample_count):
         return [ [ [ "noun" ] * len(sentence) ] * sample_count, [] ]
 
@@ -173,6 +173,42 @@ class Solver:
                             temp="noun"
                     wordlist.append(temp)
         return [ [ wordlist], [] ]
+    
+    def posterior_calculation(self, sentence,output):
+        sum = 1
+        part_of_speech = ['adj','adv','adp','conj','det','noun','num','pron','prt','verb','x','.']      # List of Parts of Speeches
+        Probability_word_given_part = {}
+        Probability_state_change = {}
+        Probability_first_word ={}
+        Count_first_word = {}
+        word = sentence[0]
+        for part in part_of_speech:
+            Count_first_word[part] = self.dict_count_word_part_of_speech[word+"-"+part]
+
+        for part in part_of_speech:
+            if self.dict_count_each_word[word] !=0:
+                Probability_first_word[part] = float(Count_first_word[part]) / self.dict_count_each_word[word]
+            else:
+                Probability_first_word[part] =0
+        for word in sentence:
+            for part in part_of_speech:
+                Probability_word_given_part[word+"-"+part] = float(self.dict_count_word_part_of_speech[word+"-"+part])/self.dict_count_each_part_of_speech[part]
+        for state in self.dict_count_part_of_speech_CP:
+            Probability_state_change[state] = float(self.dict_count_part_of_speech_CP[state])/ self.dict_count_each_part_of_speech[state.split("-")[0]]
+        for i in range(len(sentence)):
+            if i == 0:
+                try:
+
+                    sum = sum + Probability_word_given_part[sentence[i].lower()+"-"+output[i]] *  Probability_first_word[output[i]]
+                except:
+                    sum = sum
+            else:
+                try:
+                    sum = sum + (Probability_first_word[output[0]] * (Probability_state_change[output[i-1]+"-"+output[i]] * Probability_word_given_part[sentence[i].lower()+"-"+output[i]]))
+                except:
+                    sum = sum
+        return math.log10(sum)
+        
     
     def learning_dictionary(self,data):
         dict_count_first_word=defaultdict(int)
