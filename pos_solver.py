@@ -32,7 +32,7 @@ class Solver:
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling
     def posterior(self, sentence, label):
-        return 0
+        return self.posterior_calculation(sentence, label)
 
     # Do the training!
     #
