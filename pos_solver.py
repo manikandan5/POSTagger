@@ -2,12 +2,14 @@
 # CS B551 Fall 2015, Assignment #5
 #
 # Your names and user ids:
+# Manikandan Murugesan and Debasis Dwivedy
 #
 # (Based on skeleton code by D. Crandall)
 #
 #
 ####
 # Put your report here!!
+# 
 ####
 
 import random
