@@ -9,7 +9,18 @@
 #
 ####
 # Put your report here!!
+# Our program performs all the functionalities of the assignment
+# The dictionaries that have been used for the problem has been explained at the places where they have been initialised
+# We have the learning function which reads the data from the training file and populates the learning library
+# We have a Probability learning function which calculates the probability similarly
+# Our best algorithm finds a better optimal solution
+# Though we double checked the implementation of Viterbi algorithm, we are getting low values for that
 # The output of the program is:
+# Naive : 88.27 %
+# MCMC :
+# Sampling :
+# Viterbi : 72.43%
+# Best : 93.35%
 ####
 
 import random
