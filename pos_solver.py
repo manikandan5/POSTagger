@@ -147,7 +147,11 @@ class Solver:
                     if (r <= sum):
                         break
                     position += 1
-                position_list.append(different_parts_of_speech[position])
+	        if(position<len(different_parts_of_speech)):
+                    position_list.append(different_parts_of_speech[position])
+                else:
+                   position_list.append(".") 
+		#position_list.append(different_parts_of_speech[position])
             if(g>=burn_in):
                 dd.append(position_list)
                 #dd.append(different_parts_of_speech[position])
