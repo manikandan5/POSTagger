@@ -209,7 +209,7 @@ class Solver:
         for word in sentence:
             for speech in different_parts_of_speech:
                 sentence_parts_of_speech[word][speech]=0
-        print sentence_parts_of_speech
+        #print sentence_parts_of_speech
         for taglist in output:
             for length in range(len(sentence)) :
                 sentence_parts_of_speech[sentence[length]][taglist[length]] += 1
@@ -224,8 +224,9 @@ class Solver:
                     temp_num=inner_dict[different_parts_of_speech[k]]
             confidence_score.append(0.5)
             final_output.append(max_part_of_speech)
-
-        final_output.append('.')
+	for z in range(len(final_output),len(sentence)):
+            final_output.append(".") 
+        #final_output.append('.')
         return [ [final_output], [confidence_score]]
 
     def viterbi(self, sentence):
