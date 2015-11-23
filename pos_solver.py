@@ -17,8 +17,8 @@
 # Though we double checked the implementation of Viterbi algorithm, we are getting low values for that
 # The output of the program is:
 # Naive : 88.27 %
-# MCMC :
-# Sampling :
+# MCMC : 7.14 %
+# Sampling : 0% Our sampler generates the samples
 # Viterbi : 72.43%
 # Best : 93.35%
 ####
@@ -39,6 +39,10 @@ class Solver:
         self.dict_count_each_part_of_speech={} #e.g.,(dict["noun"]=3)
         self.dict_count_part_of_speech_CP={} #e.g.,(dict["noun-verb"]=5)
         self.dict_count_word_part_of_speech={}#e.g., (dict[hari-noun]=6)
+        self.total_number_of_words=1#Total number of words in the model
+        self.dict_prob_each_part_of_speech={}#e.g.,(dict["verb"]=5)
+        self.dict_word_probability={}#e.g.,(dict[cp_hari|noun]=0.05)
+        self.dict_part_of_speech_probability={}#e.g.,(dict[cp_noun|verb]=0.05)
 
     # Calculate the log of the posterior probability of a given sentence
     #  with a given part-of-speech labeling
@@ -48,13 +52,16 @@ class Solver:
     # Do the training!
     #
     def train(self, data):
-        self.dict_count_first_word,self.dict_count_each_word,self.dict_count_each_part_of_speech,self.dict_count_part_of_speech_CP,self.dict_count_word_part_of_speech=self.learning_dictionary(data)
+        self.dict_count_first_word,self.dict_count_each_word,self.dict_count_each_part_of_speech,self.dict_count_part_of_speech_CP,self.dict_count_word_part_of_speech,self.total_number_of_words=self.learning_dictionary(data)
         #print dict_count_first_word
         #print dict_count_each_word
         #print self.dict_count_each_part_of_speech
         #print dict_count_part_of_speech_CP
         #print self.dict_count_word_part_of_speech
+        self.dict_part_of_speech_probability,self.dict_word_probability=self.probability_dictionary(data)
+        #print self.dict_part_of_speech_probability
         pass
+
 
     # Functions for each algorithm.
     #
@@ -93,7 +100,72 @@ class Solver:
         #return [ [ [ "noun" ] * len(sentence)], [] ]
 	
     def mcmc(self, sentence, sample_count):
-        return [ [ [ "noun" ] * len(sentence) ] * sample_count, [] ]
+        #print len(sentence)
+        dd=[]
+        part_of_speech=self.naive(sentence)
+        part_of_speech=part_of_speech[0][0]
+        #print part_of_speech.count('noun')
+        #p_noun=part_of_speech.count('noun')/len(part_of_speech)
+        different_parts_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        burn_in =1000
+        for g in range(0,burn_in+sample_count):
+            position_list=[]
+            for i in range(0,len(sentence)):
+
+                normalized_probability_of_word_in_sentence=[]
+                if(i==0):
+                    for j in range(0,len(different_parts_of_speech)):
+                         a=self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()]
+                         p1=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         p1=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
+                         normalized_probability_of_word_in_sentence.append(p1)
+
+                elif(i==len(sentence)-1):
+                    for j in range(0,len(different_parts_of_speech)):
+                         p2=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         p2=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
+                         normalized_probability_of_word_in_sentence.append(p2)
+
+                else:
+                    for j in range(0,len(different_parts_of_speech)):
+                         p3=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         p3=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
+                         normalized_probability_of_word_in_sentence.append(p3)
+
+                #normalized_probability_of_word_in_sentence=sum(normalized_probability_of_word_in_sentence)
+                #print self.dict_part_of_speech_probability
+                #print self.dict_word_probability
+                sum_list =[]
+                sum_pos = 0
+                for prob in normalized_probability_of_word_in_sentence:
+                    sum_pos += prob
+                    sum_list.append(sum_pos)
+
+                r=random.random()
+                position = 0
+                for sum in sum_list:
+                    if (r <= sum):
+                        break
+                    position += 1
+                position_list.append(different_parts_of_speech[position])
+            if(g>=burn_in):
+                dd.append(position_list)
+                #dd.append(different_parts_of_speech[position])
+                #print different_parts_of_speech[position]
+                #print sum(normalized_probability_of_word_in_sentence)
+                #===================================================================
+                # for l in range(0,len(normalized_probability_of_word_in_sentence)-1):
+                #     #print float(normalized_probability_of_word_in_sentence[l])
+                #     if(sum(normalized_probability_of_word_in_sentence)!=0.0):
+                #         normalized_probability_of_word_in_sentence[l]=float(normalized_probability_of_word_in_sentence[l])/float(sum(normalized_probability_of_word_in_sentence))
+                #===================================================================
+
+                #print normalized_probability_of_word_in_sentence
+
+        #print len(dd)
+        #print dd
+        return [ dd, [] ]
+
 
     def best(self, sentence):
         word_used_as_part_of_speech="dd"
@@ -127,7 +199,34 @@ class Solver:
 	#return [ [ [ "noun" ] * len(sentence)], [] ]
 
     def max_marginal(self, sentence):
-        return [ [ [ "noun" ] * len(sentence)], [[0] * len(sentence),] ]
+        [output,dd]=self.mcmc(sentence, 5)
+        #print output
+        final_output=[]
+        confidence_score=[]
+        different_parts_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        sentence_parts_of_speech= defaultdict(dict)
+        inner_dict={}
+        for word in sentence:
+            for speech in different_parts_of_speech:
+                sentence_parts_of_speech[word][speech]=0
+        print sentence_parts_of_speech
+        for taglist in output:
+            for length in range(len(sentence)) :
+                sentence_parts_of_speech[sentence[length]][taglist[length]] += 1
+
+        max_part_of_speech=""
+        for i in range(0,len(sentence_parts_of_speech)):
+            inner_dict=sentence_parts_of_speech.get(sentence[i])
+            temp_num=0
+            for k in range(0,len(different_parts_of_speech)):
+                if(inner_dict[different_parts_of_speech[k]]>temp_num):
+                    max_part_of_speech=different_parts_of_speech[k]
+                    temp_num=inner_dict[different_parts_of_speech[k]]
+            confidence_score.append(0.5)
+            final_output.append(max_part_of_speech)
+
+        final_output.append('.')
+        return [ [final_output], [confidence_score]]
 
     def viterbi(self, sentence):
         part_of_speech = ['adj','adv','adp','conj','det','noun','num','pron','prt','verb','x','.']      # List of Parts of Speeches
@@ -227,24 +326,82 @@ class Solver:
         dict_count_each_part_of_speech=defaultdict(int)
         dict_count_part_of_speech_CP=defaultdict(int)
         dict_count_word_part_of_speech=defaultdict(int)
+        total_number_of_words=0
         for i in range(0,len(data)):
             dict_count_first_word[data[i][0][0]]=dict_count_first_word[data[i][0][0]]+1
             for j in range(0,len(data[i][0])):
-                dict_count_each_word[data[i][0][j]]=dict_count_each_word[data[i][0][j]]+1  
+                total_number_of_words+=1
+                dict_count_each_word[data[i][0][j]]=dict_count_each_word[data[i][0][j]]+1
                 dict_count_each_part_of_speech[data[i][1][j]]=dict_count_each_part_of_speech[data[i][1][j]]+1
                 if j<len(data[i][0])-1:
                     CP_part_of_speech=data[i][1][j]
                     CP_part_of_speech+="-"
                     CP_part_of_speech+=data[i][1][j+1]
-                    dict_count_part_of_speech_CP[CP_part_of_speech]=dict_count_part_of_speech_CP[CP_part_of_speech]+1 
-                    
-                    
+                    dict_count_part_of_speech_CP[CP_part_of_speech]=dict_count_part_of_speech_CP[CP_part_of_speech]+1
+
+
                     Word_part_of_speech=data[i][0][j]
                     Word_part_of_speech+="-"
                     Word_part_of_speech+=data[i][1][j]
-                    dict_count_word_part_of_speech[Word_part_of_speech] = dict_count_word_part_of_speech[Word_part_of_speech]+1    
-        return dict_count_first_word,dict_count_each_word,dict_count_each_part_of_speech,dict_count_part_of_speech_CP,dict_count_word_part_of_speech
-        
+                    dict_count_word_part_of_speech[Word_part_of_speech] = dict_count_word_part_of_speech[Word_part_of_speech]+1
+
+        return dict_count_first_word,dict_count_each_word,dict_count_each_part_of_speech,dict_count_part_of_speech_CP,dict_count_word_part_of_speech,total_number_of_words
+
+
+    def probability_dictionary(self,data):
+        different_parts_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        part_of_speech_probability=defaultdict(int)
+        sum_of_parts_of_speech=sum(self.dict_count_part_of_speech_CP.values())
+        for i in range(0,len(different_parts_of_speech)):
+            for j in range(0,len(different_parts_of_speech)):
+                #if(different_parts_of_speech[i]!=different_parts_of_speech[j]):
+                    #self.dict_count_part_of_speech_CP={} #e.g.,(dict["noun-verb"]=5)
+                    temp_part_of_speech=""
+                    temp_part_of_speech+="cp_"
+                    temp_part_of_speech+=different_parts_of_speech[i].lower()
+                    temp_part_of_speech+="|"
+                    temp_part_of_speech+=different_parts_of_speech[j].lower()
+                    a_int_b=self.dict_count_part_of_speech_CP[different_parts_of_speech[j].lower()+"-"+different_parts_of_speech[i].lower()]
+                    prob_a_int_b=a_int_b/sum_of_parts_of_speech
+                    #[p("verb")=0.5]
+                    prob_part_of_speech=float(self.dict_count_each_part_of_speech[different_parts_of_speech[j].lower()])/float(self.total_number_of_words)
+                    self.dict_prob_each_part_of_speech[different_parts_of_speech[j].lower()]=prob_part_of_speech
+                    if(prob_part_of_speech!=0):
+                        part_of_speech_probability[temp_part_of_speech]=prob_a_int_b/prob_part_of_speech
+                    else:
+                        part_of_speech_probability[temp_part_of_speech]=0.0005
+
+
+        # self.dict_count_word_part_of_speech={}#e.g., (dict[hari-noun]=6)
+        #self.dict_count_each_word(dict[hari]=6)
+        #Word_part_of_speech=data[i][0][j]
+        #Word_part_of_speech+="-"
+        #Word_part_of_speech+=data[i][1][j]
+        word_probability=defaultdict(int)
+
+        for i in range(0,len(data)):
+            for j in range(0,len(data[i][0])):
+                word=data[i][0][j]
+                for k in range(0,len(different_parts_of_speech)):
+                    count_word=self.dict_count_each_word[word]
+                    count_part_of_speech=self.dict_count_each_part_of_speech[different_parts_of_speech[k]]
+
+                    count_word_int_part_of_speech=self.dict_count_word_part_of_speech[word+"-"+different_parts_of_speech[k].lower()]
+                    probability_of_part_of_speech=self.dict_prob_each_part_of_speech[different_parts_of_speech[k].lower()]
+                    temp_word=""
+                    temp_word+="cp_"
+                    temp_word+=word
+                    temp_word+="|"
+                    temp_word+=different_parts_of_speech[k].lower()
+                    if(probability_of_part_of_speech!=0 and count_part_of_speech!=0):
+                        word_probability[temp_word]=(float(count_word_int_part_of_speech)/float(count_part_of_speech))/probability_of_part_of_speech
+                    else:
+                        word_probability[temp_word]=0.0005
+
+        #print part_of_speech_probability
+        #print word_probability
+        return part_of_speech_probability,word_probability
+
     
 
 
