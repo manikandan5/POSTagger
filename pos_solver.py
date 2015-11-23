@@ -115,20 +115,20 @@ class Solver:
                 normalized_probability_of_word_in_sentence=[]
                 if(i==0):
                     for j in range(0,len(different_parts_of_speech)):
-                         a=self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()]
-                         p1=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         #a=self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()]
+                         #p1=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
                          p1=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
                          normalized_probability_of_word_in_sentence.append(p1)
 
                 elif(i==len(sentence)-1):
                     for j in range(0,len(different_parts_of_speech)):
-                         p2=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         #p2=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
                          p2=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
                          normalized_probability_of_word_in_sentence.append(p2)
 
                 else:
                     for j in range(0,len(different_parts_of_speech)):
-                         p3=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
+                         #p3=float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i-1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_part_of_speech_probability["cp_"+part_of_speech[i+1]+"|"+different_parts_of_speech[j].lower()])*float(self.dict_word_probability["cp_"+sentence[i]+"|"+different_parts_of_speech[j].lower()])
                          p3=float(part_of_speech.count(different_parts_of_speech[j].lower()))/float(len(part_of_speech))
                          normalized_probability_of_word_in_sentence.append(p3)
 
