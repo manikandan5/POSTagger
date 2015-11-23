@@ -9,7 +9,7 @@
 #
 ####
 # Put your report here!!
-# 
+# The output of the program is:
 ####
 
 import random
