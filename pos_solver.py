@@ -89,7 +89,60 @@ class Solver:
         return [ [ [ "noun" ] * len(sentence)], [[0] * len(sentence),] ]
 
     def viterbi(self, sentence):
-        return [ [ [ "noun" ] * len(sentence)], [] ]
+        part_of_speech = ['adj','adv','adp','conj','det','noun','num','pron','prt','verb','x','.']      # List of Parts of Speeches
+        Count_first_word = {}                                                                           # Dictionary that contains respective count of the first word in different parts of speech
+        Probability_first_word = {}                                                                     # Probability of first part being the part of speech in the key
+        Probability_state_change = {}                                                                   # Probability of status changing from state 1 to state 2
+        Probability_word_given_part = {}                                                                # Probability that the word given a particular part of speech
+        punctuation = [',','.','\'','"','!','`']                                                        # Punctuation list
+        word = sentence[0]                                                                              # Temporary initialisation variables
+
+        #Loop to find the count of the first word being respective part of speech in the key and to find the total occurence of the word
+        for part in part_of_speech:
+            Count_first_word[part] = self.dict_count_word_part_of_speech[word+"-"+part]
+
+        #Loop to find the probability for the first word
+        for part in part_of_speech:
+            if self.dict_count_each_word[word]!=0:
+                Probability_first_word[part] = float(Count_first_word[part]) / self.dict_count_each_word[word]
+            else:
+                Probability_first_word[part]=0
+
+        #Probability for the state to change from one to another
+        for state in self.dict_count_part_of_speech_CP:
+            Probability_state_change[state] = float(self.dict_count_part_of_speech_CP[state])/ self.dict_count_each_part_of_speech[state.split("-")[0]]
+
+        #Probability to find the word given that it is a particular part of speech
+        for word in sentence:
+            for part in part_of_speech:
+                Probability_word_given_part[word+"-"+part] = float(self.dict_count_word_part_of_speech[word+"-"+part])/self.dict_count_each_part_of_speech[part]
+
+        prob = 0
+        temp = " "
+        wordlist = []
+        for word in sentence:
+            if word in punctuation:
+                wordlist.append('.')
+            else:
+                #Loop to find the maximum Viterbi for the first word
+                if (wordlist == []):
+                    for part in part_of_speech:
+                        if (Probability_first_word[part] *  Probability_word_given_part[sentence[0]+"-"+part]>prob):
+                            prob = Probability_first_word[part] *  Probability_word_given_part[sentence[0]+"-"+part]
+                            temp = part
+                    wordlist.append(temp)
+                else:       #Loop for the second word onwards
+                    probability = 0
+                    for part in part_of_speech:
+                        try:
+                            if (prob * Probability_word_given_part[word+"-"+part] * Probability_state_change[temp+"-"+part]>probability):
+                                probability = prob * Probability_word_given_part[word+"-"+part] * Probability_state_change[temp+"-"+part]
+                                prob = probability
+                                temp = part
+                        except:
+                            temp="noun"
+                    wordlist.append(temp)
+        return [ [ wordlist], [] ]
     
     def learning_dictionary(self,data):
         dict_count_first_word=defaultdict(int)
