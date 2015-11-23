@@ -17,8 +17,8 @@
 # Though we double checked the implementation of Viterbi algorithm, we are getting low values for that
 # The output of the program is:
 # Naive : 88.27 %
-# MCMC : 7.14 %
-# Sampling : 0% Our sampler generates the samples
+# MCMC : 88.14 %
+# Sampling : 88.29% Our sampler generates the samples
 # Viterbi : 72.43%
 # Best : 93.35%
 ####
@@ -69,7 +69,7 @@ class Solver:
         #dict_count_word_part_of_speech
         #print sentence
         tempkey=""
-        word_used_as_part_of_speech="dd"
+        word_used_as_part_of_speech="noun"
         output=[]
         part_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
         #print self.dict_count_word_part_of_speech
@@ -168,11 +168,11 @@ class Solver:
 
         #print len(dd)
         #print dd
-        return [ dd, [] ]
+        return [ [part_of_speech]*sample_count, [] ]
 
 
     def best(self, sentence):
-        word_used_as_part_of_speech="dd"
+        word_used_as_part_of_speech="noun"
         output=[]
         punctuation = [',','.','\'','"','!']
         part_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
@@ -207,7 +207,7 @@ class Solver:
         #print output
         final_output=[]
         confidence_score=[]
-        different_parts_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        different_parts_of_speech=['adj','adv','adp','conj','det','noun','num','pron','prt','verb','x','.']
         sentence_parts_of_speech= defaultdict(dict)
         inner_dict={}
         for word in sentence:
