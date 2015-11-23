@@ -83,7 +83,35 @@ class Solver:
         return [ [ [ "noun" ] * len(sentence) ] * sample_count, [] ]
 
     def best(self, sentence):
-        return [ [ [ "noun" ] * len(sentence)], [] ]
+        word_used_as_part_of_speech="dd"
+        output=[]
+        punctuation = [',','.','\'','"','!']
+        part_of_speech=['ADJ','ADV','ADP','CONJ','DET','NOUN','NUM','PRON','PRT','VERB','X','.']
+        for i in range(0, len(sentence)):
+            if sentence[i] in punctuation:
+                word_used_as_part_of_speech = "."
+            else:
+                if(self.dict_count_each_word.has_key(sentence[i])):
+                    CP_count=0
+                    for j in range(0, len(part_of_speech)):
+                        tempkey=sentence[i]
+                        tempkey+="-"
+                        tempkey+=part_of_speech[j].lower()
+                        if(self.dict_count_word_part_of_speech[tempkey]> CP_count):
+                            word_used_as_part_of_speech=part_of_speech[j].lower()
+                            CP_count=self.dict_count_word_part_of_speech[tempkey]
+                       
+                else:
+                    CP_count=0
+                    for j in range(0, len(part_of_speech)):
+                        if(self.dict_count_each_part_of_speech[part_of_speech[j].lower()]>CP_count):
+                            CP_count=self.dict_count_each_part_of_speech[part_of_speech[j].lower()]
+                            word_used_as_part_of_speech=part_of_speech[j].lower()
+
+            output.append(word_used_as_part_of_speech)
+            
+        return [ [ output], [] ]
+	#return [ [ [ "noun" ] * len(sentence)], [] ]
 
     def max_marginal(self, sentence):
         return [ [ [ "noun" ] * len(sentence)], [[0] * len(sentence),] ]
